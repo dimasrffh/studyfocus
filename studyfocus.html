@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyFocus - Pomodoro Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-color: #4a9b8e;
+            --text-color: white;
+            --button-bg: rgba(255, 255, 255, 0.2);
+            --button-hover: rgba(255, 255, 255, 0.3);
+            --modal-bg: white;
+            --modal-text: #333;
+            --input-bg: #f0f0f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg-color), #3d8b7e);
+            color: var(--text-color);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 50px;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo::before {
+            content: "✓";
+            background: white;
+            color: var(--bg-color);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-btn {
+            background: var(--button-bg);
+            border: none;
+            color: var(--text-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .header-btn:hover {
+            background: var(--button-hover);
+        }
+
+        .timer-modes {
+            display: flex;
+            background: var(--button-bg);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 50px;
+            gap: 4px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .mode-btn.active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .timer-display {
+            font-size: 120px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .start-btn {
+            background: white;
+            color: var(--bg-color);
+            border: none;
+            padding: 18px 48px;
+            font-size: 20px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 50px;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .session-info {
+            margin-bottom: 50px;
+            opacity: 0.8;
+        }
+
+        .session-number {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .session-message {
+            font-size: 16px;
+        }
+
+        .tasks-section {
+            background: var(--button-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .tasks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .tasks-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .add-task-btn {
+            background: var(--button-bg);
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            color: var(--text-color);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .add-task-btn:hover {
+            border-color: rgba(255, 255, 255, 0.8);
+            background: var(--button-hover);
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .task-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .task-checkbox {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .task-text {
+            flex: 1;
+            text-align: left;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .task-action {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            opacity: 0.7;
+            transition: all 0.2s;
+        }
+
+        .task-action:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--modal-bg);
+            color: var(--modal-text);
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .time-inputs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .time-input {
+            flex: 1;
+            text-align: center;
+        }
+
+        .time-input input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: var(--input-bg);
+            text-align: center;
+        }
+
+        .time-input label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 4px;
+            color: #666;
+        }
+
+        .toggle-switch {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: #ddd;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .switch.active {
+            background: #4CAF50;
+        }
+
+        .switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s;
+        }
+
+        .switch.active::after {
+            left: 28px;
+        }
+
+        .color-picker {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .color-option {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .task-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .modal-btn.primary {
+            background: var(--bg-color);
+            color: white;
+        }
+
+        .modal-btn.secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        /* Theme colors */
+        .theme-red { --bg-color: #c55a5a; }
+        .theme-teal { --bg-color: #4a9b8e; }
+        .theme-blue { --bg-color: #4d7ea8; }
+        .theme-yellow { --bg-color: #b8860b; }
+        .theme-purple { --bg-color: #8e4ec6; }
+        .theme-pink { --bg-color: #c44569; }
+        .theme-green { --bg-color: #27ae60; }
+        .theme-dark { --bg-color: #4a4a4a; }
+
+        @media (max-width: 600px) {
+            .timer-display {
+                font-size: 80px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 0 10px;
+            }
+        }
+    </style>
+</head>
+<body class="theme-teal">
+    <div class="container">
+        <div class="header">
+            <div class="logo">StudyFocus</div>
+            <div class="header-buttons">
+                <button class="header-btn" onclick="showReport()">📊 Report</button>
+                <button class="header-btn" onclick="showSettings()">⚙️ Setting</button>
+                <button class="header-btn" onclick="showThemes()">🎨</button>
+            </div>
+        </div>
+
+        <div class="timer-modes">
+            <button class="mode-btn active" data-mode="pomodoro">Pomodoro</button>
+            <button class="mode-btn" data-mode="short">Short Break</button>
+            <button class="mode-btn" data-mode="long">Long Break</button>
+        </div>
+
+        <div class="timer-display" id="timerDisplay">25:00</div>
+
+        <button class="start-btn" id="startBtn" onclick="toggleTimer()">START</button>
+
+        <div class="session-info">
+            <div class="session-number" id="sessionNumber">#1</div>
+            <div class="session-message" id="sessionMessage">Time to focus!</div>
+        </div>
+
+        <div class="tasks-section">
+            <div class="tasks-header">
+                <div class="tasks-title">Tasks</div>
+                <button class="header-btn" onclick="clearTasks()">Clear</button>
+            </div>
+            <div id="tasksList"></div>
+            <button class="add-task-btn" onclick="showAddTask()">+ Add Task</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">SETTING</div>
+                <button class="close-btn" onclick="closeModal('settingsModal')">&times;</button>
+            </div>
+            
+            <div class="setting-group">
+                <div class="setting-label">⏱️ TIMER</div>
+                <div class="setting-label" style="margin-top: 15px;">Time (minutes)</div>
+                <div class="time-inputs">
+                    <div class="time-input">
+                        <label>Pomodoro</label>
+                        <input type="number" id="pomodoroTime" value="25" min="1" max="60">
+                    </div>
+                    <div class="time-input">
+                        <label>Short Break</label>
+                        <input type="number" id="shortBreakTime" value="5" min="1" max="30">
+                    </div>
+                    <div class="time-input">
+                        <label>Long Break</label>
+                        <input type="number" id="longBreakTime" value="15" min="1" max="60">
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <div class="toggle-switch">
+                    <span>Auto Start Breaks</span>
+                    <div class="switch" id="autoStartBreaks" onclick="toggleSwitch('autoStartBreaks')"></div>
+                </div>
+                <div class="toggle-switch">
+                    <span>Auto Start Pomodoros</span>
+                    <div class="switch" id="autoStartPomodoros" onclick="toggleSwitch('autoStartPomodoros')"></div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">Long Break interval</div>
+                <input type="number" id="longBreakInterval" value="4" min="2" max="10" style="width: 60px; text-align: center; padding: 5px;">
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">✅ TASK</div>
+                <div class="toggle-switch">
+                    <span>Auto Check Tasks ℹ️</span>
+                    <div class="switch" id="autoCheckTasks" onclick="toggleSwitch('autoCheckTasks')"></div>
+                </div>
+                <div class="toggle-switch">
+                    <span>Auto Switch Tasks ℹ️</span>
+                    <div class="switch active" id="autoSwitchTasks" onclick="toggleSwitch('autoSwitchTasks')"></div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">🔊 SOUND</div>
+                <div style="margin-top: 10px;">
+                    <label>Alarm Sound</label>
+                    <select style="width: 100%; padding: 8px; margin-top: 5px;">
+                        <option>Kitchen</option>
+                        <option>Bell</option>
+                        <option>Chime</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Modal -->
+    <div id="themeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Pick a color for Pomodoro</div>
+                <button class="close-btn" onclick="closeModal('themeModal')">&times;</button>
+            </div>
+            <div class="color-picker">
+                <div class="color-option selected" style="background: #c55a5a;" data-theme="red"></div>
+                <div class="color-option" style="background: #4a9b8e;" data-theme="teal"></div>
+                <div class="color-option" style="background: #4d7ea8;" data-theme="blue"></div>
+                <div class="color-option" style="background: #b8860b;" data-theme="yellow"></div>
+                <div class="color-option" style="background: #8e4ec6;" data-theme="purple"></div>
+                <div class="color-option" style="background: #c44569;" data-theme="pink"></div>
+                <div class="color-option" style="background: #27ae60;" data-theme="green"></div>
+                <div class="color-option" style="background: #4a4a4a;" data-theme="dark"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div id="addTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Add Task</div>
+                <button class="close-btn" onclick="closeModal('addTaskModal')">&times;</button>
+            </div>
+            <input type="text" id="taskInput" class="task-input" placeholder="What are you working on?" maxlength="100">
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="closeModal('addTaskModal')">Cancel</button>
+                <button class="modal-btn primary" onclick="addTask()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Report</div>
+                <button class="close-btn" onclick="closeModal('reportModal')">&times;</button>
+            </div>
+            <div style="text-align: center; padding: 20px;">
+                <div style="font-size: 48px; margin-bottom: 10px;">🍅</div>
+                <div style="font-size: 24px; font-weight: bold; margin-bottom: 5px;" id="reportPomodoros">0</div>
+                <div style="color: #666;">Pomodoros completed today</div>
+                <div style="margin-top: 20px; font-size: 14px; color: #666;">
+                    Total focus time: <span id="reportFocusTime">0h 0m</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Timer state
+        let currentMode = 'pomodoro';
+        let timeLeft = 25 * 60; // 25 minutes in seconds
+        let isRunning = false;
+        let timerInterval = null;
+        let session = 1;
+        let completedPomodoros = 0;
+        let totalFocusTime = 0;
+
+        // Settings
+        let settings = {
+            pomodoro: 25,
+            shortBreak: 5,
+            longBreak: 15,
+            autoStartBreaks: false,
+            autoStartPomodoros: false,
+            longBreakInterval: 4,
+            autoCheckTasks: false,
+            autoSwitchTasks: true
+        };
+
+        // Tasks
+        let tasks = [];
+        let currentTask = 0;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            loadTasks();
+            updateTimerDisplay();
+            updateSessionInfo();
+            renderTasks();
+            
+            // Mode buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (!isRunning) {
+                        switchMode(this.dataset.mode);
+                    }
+                });
+            });
+
+            // Theme selection
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    selectTheme(this.dataset.theme);
+                });
+            });
+
+            // Settings inputs
+            document.getElementById('pomodoroTime').addEventListener('change', updateTimerSettings);
+            document.getElementById('shortBreakTime').addEventListener('change', updateTimerSettings);
+            document.getElementById('longBreakTime').addEventListener('change', updateTimerSettings);
+            document.getElementById('longBreakInterval').addEventListener('change', updateTimerSettings);
+        });
+
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Update active button
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.mode === mode) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Set timer based on mode
+            switch(mode) {
+                case 'pomodoro':
+                    timeLeft = settings.pomodoro * 60;
+                    break;
+                case 'short':
+                    timeLeft = settings.shortBreak * 60;
+                    break;
+                case 'long':
+                    timeLeft = settings.longBreak * 60;
+                    break;
+            }
+
+            updateTimerDisplay();
+            updateSessionInfo();
+        }
+
+        function toggleTimer() {
+            const startBtn = document.getElementById('startBtn');
+            
+            if (isRunning) {
+                // Pause timer
+                clearInterval(timerInterval);
+                isRunning = false;
+                startBtn.textContent = 'START';
+            } else {
+                // Start timer
+                isRunning = true;
+                startBtn.textContent = 'PAUSE';
+                
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    
+                    if (timeLeft <= 0) {
+                        timerComplete();
+                    }
+                }, 1000);
+            }
+        }
+
+        function timerComplete() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            document.getElementById('startBtn').textContent = 'START';
+            
+            // Play notification sound (browser notification)
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('Timer Complete!', {
+                    body: currentMode === 'pomodoro' ? 'Time for a break!' : 'Back to work!',
+                    icon: '🍅'
+                });
+            }
+
+            // Handle pomodoro completion
+            if (currentMode === 'pomodoro') {
+                completedPomodoros++;
+                totalFocusTime += settings.pomodoro;
+                
+                // Auto-check current task if enabled
+                if (settings.autoCheckTasks && tasks.length > 0) {
+                    tasks[currentTask].completed = true;
+                    renderTasks();
+                }
+
+                // Auto-switch to next task if enabled
+                if (settings.autoSwitchTasks && tasks.length > 0) {
+                    let nextTask = currentTask + 1;
+                    if (nextTask < tasks.length && !tasks[nextTask].completed) {
+                        currentTask = nextTask;
+                        renderTasks();
+                    }
+                }
+
+                // Determine next break type
+                const nextMode = (completedPomodoros % settings.longBreakInterval === 0) ? 'long' : 'short';
+                
+                if (settings.autoStartBreaks) {
+                    switchMode(nextMode);
+                    setTimeout(() => toggleTimer(), 1000);
+                }
+            } else {
+                // Break is complete
+                if (settings.autoStartPomodoros) {
+                    switchMode('pomodoro');
+                    setTimeout(() => toggleTimer(), 1000);
+                }
+            }
+
+            session++;
+            updateSessionInfo();
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('timerDisplay').textContent = display;
+            
+            // Update page title
+            document.title = `${display} - StudyFocus`;
+        }
+
+        function updateSessionInfo() {
+            document.getElementById('sessionNumber').textContent = `#${session}`;
+            
+            const messages = {
+                pomodoro: 'Time to focus!',
+                short: 'Time for a break!',
+                long: 'Time for a long break!'
+            };
+            
+            document.getElementById('sessionMessage').textContent = messages[currentMode];
+        }
+
+        // Task Management
+        function showAddTask() {
+            document.getElementById('addTaskModal').classList.add('show');
+            document.getElementById('taskInput').focus();
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+            
+            if (text) {
+                tasks.push({
+                    id: Date.now(),
+                    text: text,
+                    completed: false,
+                    pomodoros: 0
+                });
+                
+                input.value = '';
+                renderTasks();
+                saveTasks();
+                closeModal('addTaskModal');
+            }
+        }
+
+        function renderTasks() {
+            const tasksList = document.getElementById('tasksList');
+            
+            if (tasks.length === 0) {
+                tasksList.innerHTML = '';
+                return;
+            }
+
+            tasksList.innerHTML = tasks.map((task, index) => `
+                <div class="task-item ${index === currentTask ? 'current' : ''}" style="${index === currentTask ? 'border-left: 4px solid white;' : ''}">
+                    <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} 
+                           onchange="toggleTask(${index})">
+                    <span class="task-text" style="${task.completed ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${task.text}</span>
+                    <div class="task-actions">
+                        <button class="task-action" onclick="setCurrentTask(${index})" title="Set current">⭐</button>
+                        <button class="task-action" onclick="deleteTask(${index})" title="Delete">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleTask(index) {
+            tasks[index].completed = !tasks[index].completed;
+            renderTasks();
+            saveTasks();
+        }
+
+        function setCurrentTask(index) {
+            currentTask = index;
+            renderTasks();
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            if (currentTask >= tasks.length && tasks.length > 0) {
+                currentTask = tasks.length - 1;
+            }
+            renderTasks();
+            saveTasks();
+        }
+
+        function clearTasks() {
+            if (tasks.length > 0 && confirm('Clear all tasks?')) {
+                tasks = [];
+                currentTask = 0;
+                renderTasks();
+                saveTasks();
+            }
+        }
+
+        // Settings
+        function showSettings() {
+            // Update settings display
+            document.getElementById('pomodoroTime').value = settings.pomodoro;
+            document.getElementById('shortBreakTime').value = settings.shortBreak;
+            document.getElementById('longBreakTime').value = settings.longBreak;
+            document.getElementById('longBreakInterval').value = settings.longBreakInterval;
+            
+            // Update switches
+            document.getElementById('autoStartBreaks').classList.toggle('active', settings.autoStartBreaks);
+            document.getElementById('autoStartPomodoros').classList.toggle('active', settings.autoStartPomodoros);
+            document.getElementById('autoCheckTasks').classList.toggle('active', settings.autoCheckTasks);
+            document.getElementById('autoSwitchTasks').classList.toggle('active', settings.autoSwitchTasks);
+            
+            document.getElementById('settingsModal').classList.add('show');
+        }
+
+        function updateTimerSettings() {
+            settings.pomodoro = parseInt(document.getElementById('pomodoroTime').value);
+            settings.shortBreak = parseInt(document.getElementById('shortBreakTime').value);
+            settings.longBreak = parseInt(document.getElementById('longBreakTime').value);
+            settings.longBreakInterval = parseInt(document.getElementById('longBreakInterval').value);
+            
+            // Update current timer if not running
+            if (!isRunning) {
+                switch(currentMode) {
+                    case 'pomodoro':
+                        timeLeft = settings.pomodoro * 60;
+                        break;
+                    case 'short':
+                        timeLeft = settings.shortBreak * 60;
+                        break;
+                    case 'long':
+                        timeLeft = settings.longBreak * 60;
+                        break;
+                }
+                updateTimerDisplay();
+            }
+            
+            saveSettings();
+        }
+
+        function toggleSwitch(switchId) {
+            const switchEl = document.getElementById(switchId);
+            switchEl.classList.toggle('active');
+            
+            const isActive = switchEl.classList.contains('active');
+            settings[switchId] = isActive;
+            saveSettings();
+        }
+
+        // Theme
+        function showThemes() {
+            document.getElementById('themeModal').classList.add('show');
+        }
+
+        function selectTheme(theme) {
+            // Update selection
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.classList.remove('selected');
+                if (option.dataset.theme === theme) {
+                    option.classList.add('selected');
+                }
+            });
+            
+            // Apply theme
+            document.body.className = `theme-${theme}`;
+            localStorage.setItem('selectedTheme', theme);
+        }
+
+        // Report
+        function showReport() {
+            document.getElementById('reportPomodoros').textContent = completedPomodoros;
+            
+            const hours = Math.floor(totalFocusTime / 60);
+            const minutes = totalFocusTime % 60;
+            document.getElementById('reportFocusTime').textContent = `${hours}h ${minutes}m`;
+            
+            document.getElementById('reportModal').classList.add('show');
+        }
+
+        // Modal functions
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Storage functions
+        function saveSettings() {
+            localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('pomodoroSettings');
+            if (saved) {
+                settings = { ...settings, ...JSON.parse(saved) };
+            }
+            
+            // Load theme
+            const savedTheme = localStorage.getItem('selectedTheme');
+            if (savedTheme) {
+                document.body.className = `theme-${savedTheme}`;
+                // Update theme selector
+                document.querySelectorAll('.color-option').forEach(option => {
+                    option.classList.remove('selected');
+                    if (option.dataset.theme === savedTheme) {
+                        option.classList.add('selected');
+                    }
+                });
+            }
+        }
+
+        function saveTasks() {
+            localStorage.setItem('pomodoroTasks', JSON.stringify(tasks));
+            localStorage.setItem('currentTask', currentTask.toString());
+        }
+
+        function loadTasks() {
+            const savedTasks = localStorage.getItem('pomodoroTasks');
+            if (savedTasks) {
+                tasks = JSON.parse(savedTasks);
+            }
+            
+            const savedCurrentTask = localStorage.getItem('currentTask');
+            if (savedCurrentTask) {
+                currentTask = parseInt(savedCurrentTask);
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space' && !e.target.matches('input, textarea')) {
+                e.preventDefault();
+                toggleTimer();
+            }
+        });
+
+        // Click outside modal to close
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+        });
+
+        // Enter key in task input
+        document.getElementById('taskInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addTask();
+            }
+        });
+
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Auto-save progress
+        setInterval(() => {
+            if (completedPomodoros > 0 || totalFocusTime > 0) {
+                localStorage.setItem('pomodoroStats', JSON.stringify({
+                    completedPomodoros,
+                    totalFocusTime,
+                    session
+                }));
+            }
+        }, 30000); // Save every 30 seconds
+
+        // Load saved stats on startup
+        const savedStats = localStorage.getItem('pomodoroStats');
+        if (savedStats) {
+            const stats = JSON.parse(savedStats);
+            completedPomodoros = stats.completedPomodoros || 0;
+            totalFocusTime = stats.totalFocusTime || 0;
+            session = stats.session || 1;
+        }
+    </script>
+</body>
+</html>
